@@ -1,31 +1,30 @@
 Steps of Creating KeyStore & TrustStore
 ----------------------------
-Step 0 :
+###Step 0 :
 	mkdir /tmp/keystores/
-
 	cd /tmp/keystores/
 
-Step 1: Create Server KeyStore
+###Step 1: Create Server KeyStore
 
 	sudo $JAVA_HOME/bin/keytool -genkey -v -alias tomcat -keyalg RSA -validity 10000 -keystore ./tomcat.keystore -dname "CN=localhost,OU=lucas,O=lucas,L=Taipei,ST=Taiwan,c=TW" -storepass changeit -keypass changeit
 
-Step 2: Create Client KeyStore
+###Step 2: Create Client KeyStore
 
 	sudo $JAVA_HOME/bin/keytool -genkey -v -alias client -keyalg RSA -validity 10000 -keystore ./client.keystore -dname "CN=localhost,OU=lucas,O=lucas,L=Taipei,ST=Taiwan,c=TW" -storepass changeit -keypass changeit
 
-Step 3: Export Client cer File From Client KeyStore 
+###Step 3: Export Client cer File From Client KeyStore 
 
 	sudo $JAVA_HOME/bin/keytool -export -alias client -keystore ./client.keystore  -storepass changeit -rfc -file ./client.cer
 
-Step 4: Import Client cer File To Server KeyStore 
+###Step 4: Import Client cer File To Server KeyStore 
 
 	sudo $JAVA_HOME/bin/keytool -import -file ./client.cer -keystore ./tomcat.keystore -storepass changeit
 
-Step 5: Export Server cer File From Server KeyStore 
+###Step 5: Export Server cer File From Server KeyStore 
 
 	sudo $JAVA_HOME/bin/keytool -export -alias tomcat -keystore ./tomcat.keystore -storepass changeit -rfc -file ./tomcat.cer
 
-Step 6: Import Server cer File To Client TrustStore 
+###Step 6: Import Server cer File To Client TrustStore 
 
 	sudo $JAVA_HOME/bin/keytool -import -alias tomcat -file ./tomcat.cer -keystore ./client.truststore -storepass changeit
 
@@ -34,6 +33,8 @@ Step 6: Import Server cer File To Client TrustStore
 
 The Setting of the Tomcat's server.xml
 ----------------------------
+You have to add the attirbutes, including keystoreFile、truststoreFile、keystorePass、truststorePass.
+You also must set clientAuth for verifying certificate by server.
 ``` XML
 	<Connector port="8443" protocol="org.apache.coyote.http11.Http11Protocol"
     		   maxThreads="150" SSLEnabled="true" scheme="https" secure="true"
@@ -45,13 +46,13 @@ The Setting of the Tomcat's server.xml
 ```
 
 
-CustomizedSSLContext.java: init KeyStore
+CustomizedSSLContext.java:
 ----------------------------
+### To initial KeyStore
 ``` JAVA
 	
 	String path_keystore = "/tmp/keystores/client.keystore";
-	String path_truststore = "tmp/keystores/client.truststore";
-
+	
 	FileInputStream keyStoreStream = null;
 	String password_keystore = "changeit";
 	
@@ -66,10 +67,13 @@ CustomizedSSLContext.java: init KeyStore
 ```
 
 
-CustomizedSSLContext.java: init TrustStore
+### To initial TrustStore
 ----------------------------
 ``` JAVA
-	
+
+	String path_truststore = "tmp/keystores/client.truststore";
+	String password_truststore = "changeit";
+
 	KeyStore trustStore = KeyStore.getInstance("JKS");
 	trustStoreStream = new FileInputStream(new File(path_truststore));
 	trustStore.load(trustStoreStream, password_truststore.toCharArray());
@@ -80,8 +84,9 @@ CustomizedSSLContext.java: init TrustStore
 	
 ```
 
-To Run Main.java
+Main.java
 ----------------------------
+### Run Main.java
 ``` JAVA
 
 	// Init SSL
